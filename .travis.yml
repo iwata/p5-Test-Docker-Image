@@ -1,0 +1,26 @@
+language: perl
+perl:
+  - "5.12"
+  - "5.14"
+  - "5.16"
+  - "5.18"
+
+env:
+  - PERL_CPANM_OPT="--notest --force --skip-satisfied"
+
+before_install:
+  - cpanm Devel::Cover::Report::Coveralls
+
+install:
+  - cpanm --installdeps .
+
+script:
+  - prove -lrv t
+  - perl Build.PL && ./Build build && cover -test -report coveralls
+
+notifications:
+  email:
+    recipients:
+      - gootonori+github@gmail.com
+    on_success: change
+    on_failure: always
