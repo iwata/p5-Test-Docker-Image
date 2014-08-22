@@ -5,13 +5,13 @@ use warnings;
 
 use constant DEBUG => $ENV{DEBUG_TEST_DOCKER_IMAGE};
 
-use IPC::Run;
+use IPC::Run3;
 use Time::HiRes 'sleep';
 use Data::Util ':check';
 use Class::Load qw/try_load_class/;
 
 use Class::Accessor::Lite (
-    ro => [qw/tag container_port container_id/],
+    ro => [qw/tag container_ports container_id/],
 );
 
 our $VERSION = "0.01";
@@ -66,7 +66,7 @@ sub _run {
     my (@args) = @_;
 
     DEBUG && WARN sprintf "Run [ %s ]", join ' ', @args;
-    my $is_success = IPC::Run::run [ @args ], \my $stdin, \my $stdout, \my $stderr;
+    my $is_success = run3 [ @args ], \my $stdin, \my $stdout, \my $stderr;
     if ($is_success) {
         chomp $stdout;
         return $stdout;
