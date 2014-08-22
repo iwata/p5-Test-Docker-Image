@@ -21,9 +21,9 @@ Test::Docker::Image - It's new $module, this can handle a Docker image for tests
     # for Mac OSX
     `boot2docker up`;
     my $mysql_image_guard = Test::Docker::Image->new(
-        container_port => 3306,
-        tag            => 'iwata/centos6-mysql51-q4m-hs',
-        boot           => 'Test::Docker::Image::Boot::Boot2docker',
+        container_ports => [3306],
+        tag             => 'iwata/centos6-mysql51-q4m-hs',
+        boot            => 'Test::Docker::Image::Boot::Boot2docker',
     );
 
     my $port = $mysql_image_guard->port(3306);
