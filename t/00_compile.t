@@ -1,9 +1,5 @@
 use strict;
-use Test::More 0.98;
+use warnings;
+use Test::UseAllModules;
 
-use_ok $_ for qw(
-    Test::Docker::Image
-);
-
-done_testing;
-
+all_uses_ok();
