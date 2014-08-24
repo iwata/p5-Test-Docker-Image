@@ -14,7 +14,7 @@ use Class::Accessor::Lite (
     ro => [qw/tag container_ports container_id/],
 );
 
-our $VERSION = "0.01";
+our $VERSION = "0.02";
 
 sub WARN {
     my $msg = join " ",  @_;
