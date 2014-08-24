@@ -71,4 +71,16 @@ subtest "port" => sub {
     is $guard->call_count('Test::Docker::Image' => '_run') => 4;
 };
 
+subtest "_run" => sub {
+    local $ENV{DEBUG} = 1;
+
+    lives_ok {
+        Test::Docker::Image::_run('pwd');
+    } 'available command';
+
+    dies_ok {
+        Test::Docker::Image::_run('hoge');
+    } 'nonavailable command';
+};
+
 done_testing;
