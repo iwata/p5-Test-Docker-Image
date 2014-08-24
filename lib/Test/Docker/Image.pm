@@ -63,15 +63,15 @@ sub host {
 }
 
 sub _run {
-    my (@args) = @_;
+    my (@cmd) = @_;
 
-    DEBUG && WARN sprintf "Run [ %s ]", join ' ', @args;
-    my $is_success = run3 [ @args ], \my $stdin, \my $stdout, \my $stderr;
+    DEBUG && WARN sprintf "Run [ %s ]", join ' ', @cmd;
+    my $is_success = run3 [ @cmd ], \my $in, \my $out, \my $err;
     if ($is_success) {
-        chomp $stdout;
-        return $stdout;
+        chomp $out;
+        return $out;
     } else {
-        die $stderr;
+        die $err;
     }
 }
 
