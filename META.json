@@ -33,6 +33,7 @@
       },
       "develop" : {
          "requires" : {
+            "Data::Printer" : "0",
             "Minilla" : "0",
             "Test::CPAN::Meta" : "0",
             "Test::MinimumVersion::Fast" : "0.04",
@@ -48,7 +49,6 @@
             "Class::Load" : "0.22",
             "Data::Util" : "0.63",
             "IPC::Run3" : "0.048",
-            "URI::Split" : "0",
             "perl" : "5.010001"
          }
       },
@@ -73,7 +73,7 @@
          "web" : "https://github.com/iwata/p5-Test-Docker-Image"
       }
    },
-   "version" : "0.03",
+   "version" : "0.04",
    "x_contributors" : [
       "iwata-motonori <motonori.iwata@dena.com>",
       "Motonori Iwata <gootonori+github@gmail.com>"

@@ -2,6 +2,10 @@ Revision history for Perl extension Test-Docker-Image
 
 {{$NEXT}}
 
+0.04 2014-09-06T08:50:47Z
+
+    - refactor Test::Docker::Image::Boot interface
+
 0.03 2014-08-26T02:30:25Z
 
     - add Test::Deep to cpanfile for CPAN Testers
