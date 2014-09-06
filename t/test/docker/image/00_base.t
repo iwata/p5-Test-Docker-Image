@@ -2,29 +2,28 @@ use strict;
 use warnings;
 
 use Test::More;
-use Test::Deep;
 use Test::Exception;
 use Test::Mock::Guard;
 
 use Test::Docker::Image;
 
 my ($boot, $tag, $container_ports)
-    = ('Test::Docker::Image::Boot::Hoge', 'iwata/centos6-mysql51-q4m-hs', [3306, 80]);
+    = ('Test::Docker::Image::Boot::Boot2docker', 'iwata/centos6-mysql51-q4m-hs', [3306, 80]);
 my $container_id = '50e6798fa852e8568ca4e2be7890e40271b69bba000cd769c3d56e2a7e254efaa';
 
 subtest "new" => sub {
-    my $guard = mock_guard('Test::Docker::Image' => +{
-        docker => sub {
-            my (@args) = @_;
-            if ( scalar(@args) == 2 ) {
-                my $exp = [re('^(:?kill|rm)$'), $container_id];
-                cmp_deeply \@args => $exp, 'destroy';
-            } else {
-                my $exp = [qw/run -d -t -p 3306 -p 80/, $tag];
-                is_deeply \@args => $exp, 'docker run';
-                return $container_id;
-            }
+    my $guard = mock_guard('Test::Docker::Image::Boot' => +{
+        docker_run => sub {
+            my (undef, $got_ports, $got_tag) = @_;
+            my $exp_ports = [qw/-p 3306 -p 80/];
+            is_deeply $got_ports => $exp_ports, 'first argument means port number options';
+            is $got_tag => $tag, 'second argument means image tag option';
+            return $container_id;
         },
+        on_destroy => sub {
+            my (undef, $got_container_id) = @_;
+            is $got_container_id => $container_id, 'to remove';
+        }
     });
 
     lives_and {
@@ -40,35 +39,49 @@ subtest "new" => sub {
         isa_ok $docker_image->{boot} => 'Test::Docker::Image::Boot';
 
     };
-    is $guard->call_count('Test::Docker::Image' => 'docker') => 3;
+
+    for my $method ( qw(docker_run on_destroy) ) {
+        is $guard->call_count('Test::Docker::Image::Boot' => $method) => 1, "$method call once";
+    }
 };
 
 subtest "port" => sub {
     my $container_port = 3306;
     my $host_port      = 49172;
 
-    my $guard = mock_guard('Test::Docker::Image' => +{
-        docker => sub {
-            my (@args) = @_;
-            unless ( scalar(@args) == 3 ) {
-                return $container_id;
-            }
-
-            my $exp = ['port', $container_id, $container_port];
-            is_deeply \@args => $exp, 'docker port';
-            return "0.0.0.0:$host_port";
+    my $guard = mock_guard($boot => +{
+        docker_run => sub {
+            my (undef, $got_ports, $got_tag) = @_;
+            my $exp_ports = [qw/-p 3306/];
+            is_deeply $got_ports => $exp_ports, 'first argument means port number options';
+            is $got_tag => $tag, 'second argument means image tag option';
+            return $container_id;
+        },
+        docker_port => sub {
+            my (undef, $got_container_id, $got_container_port) = @_;
+            is $got_container_id => $container_id, 'container_id';
+            is $got_container_port => $container_port, 'container_port';
+            return $host_port;
+        },
+        on_destroy => sub {
+            my (undef, $got_container_id) = @_;
+            is $got_container_id => $container_id, 'to remove';
         },
     });
 
     lives_and {
         my $docker_image = Test::Docker::Image->new(
             tag             => $tag,
-            container_ports => $container_ports,
+            container_ports => [ $container_port ],
+            boot            => $boot,
         );
 
         is $docker_image->port( $container_port ) => $host_port;
     };
-    is $guard->call_count('Test::Docker::Image' => 'docker') => 4;
+
+    for my $method ( qw(docker_run docker_port on_destroy) ) {
+        is $guard->call_count($boot => $method) => 1, "$method call once";
+    }
 };
 
 done_testing;

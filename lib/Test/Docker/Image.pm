@@ -11,17 +11,15 @@ use Class::Accessor::Lite (
     ro => [qw/tag container_ports container_id/],
 );
 
-use Test::Docker::Image::Utility 'docker';
-
 our $VERSION = "0.03";
 
 sub new {
     my $class = shift;
     my %args = @_ == 1 ? %{$_[0]} : @_;
 
-    my $boot = delete $args{boot} || 'Test::Docker::Image::Boot';
+    my $boot_class = delete $args{boot} || 'Test::Docker::Image::Boot';
 
-    try_load_class( $boot ) or die "failed to load $boot";
+    try_load_class( $boot_class ) or die "failed to load $boot_class";
 
     my $image_tag = delete $args{tag};
     die "tag argument is required" unless $image_tag;
@@ -30,7 +28,10 @@ sub new {
         unless is_array_ref $args{container_ports};
 
     my @ports = map { ('-p', $_) } @{ $args{container_ports} };
-    my $container_id = docker(qw/run -d -t/, @ports, $image_tag);
+
+    my $boot         = $boot_class->new;
+    my $container_id = $boot->docker_run(\@ports, $image_tag);
+
     # wait to launch the container
     sleep $args{sleep_sec} || 0.5;
 
@@ -38,7 +39,8 @@ sub new {
         tag             => $image_tag,
         container_ports => $args{container_ports},
         container_id    => $container_id,
-        boot            => $boot->new,
+        boot            => $boot,
+        boot_class      => $boot_class,
     }, $class;
 
     return $self;
@@ -46,9 +48,7 @@ sub new {
 
 sub port {
     my ($self, $container_port) = @_;
-    my $port_info = docker('port', $self->container_id, $container_port);
-    my (undef, $port) = split ':', $port_info;
-    return $port;
+    return $self->{boot}->docker_port($self->container_id, $container_port);
 }
 
 sub host {
@@ -57,9 +57,7 @@ sub host {
 
 sub DESTROY {
     my $self = shift;
-    for my $subcommand ( qw/kill rm/ ) {
-        docker($subcommand, $self->container_id);
-    }
+    $self->{boot}->on_destroy( $self->container_id );
 }
 
 1;

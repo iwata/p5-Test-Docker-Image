@@ -11,6 +11,8 @@ use constant DEBUG => $ENV{DEBUG_TEST_DOCKER_IMAGE};
 
 our @EXPORT = qw(docker);
 
+our @EXPORT_OK = qw(run);
+
 sub WARN {
     my $msg = join " ",  @_;
     chomp $msg;
