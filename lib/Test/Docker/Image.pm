@@ -3,9 +3,6 @@ package Test::Docker::Image;
 use strict;
 use warnings;
 
-use constant DEBUG => $ENV{DEBUG_TEST_DOCKER_IMAGE};
-
-use IPC::Run3;
 use Time::HiRes 'sleep';
 use Data::Util ':check';
 use Class::Load qw/try_load_class/;
@@ -14,13 +11,9 @@ use Class::Accessor::Lite (
     ro => [qw/tag container_ports container_id/],
 );
 
-our $VERSION = "0.03";
+use Test::Docker::Image::Utility 'docker';
 
-sub WARN {
-    my $msg = join " ",  @_;
-    chomp $msg;
-    warn sprintf "[%s %.5f] %s\n", __PACKAGE__, Time::HiRes::time, $msg;
-}
+our $VERSION = "0.03";
 
 sub new {
     my $class = shift;
@@ -37,7 +30,7 @@ sub new {
         unless is_array_ref $args{container_ports};
 
     my @ports = map { ('-p', $_) } @{ $args{container_ports} };
-    my $container_id = _run(qw/docker run -d -t/, @ports, $image_tag);
+    my $container_id = docker(qw/run -d -t/, @ports, $image_tag);
     # wait to launch the container
     sleep $args{sleep_sec} || 0.5;
 
@@ -53,7 +46,7 @@ sub new {
 
 sub port {
     my ($self, $container_port) = @_;
-    my $port_info = _run(qw/docker port/, $self->container_id, $container_port);
+    my $port_info = docker('port', $self->container_id, $container_port);
     my (undef, $port) = split ':', $port_info;
     return $port;
 }
@@ -62,23 +55,10 @@ sub host {
     $_[0]->{boot}->host;
 }
 
-sub _run {
-    my (@cmd) = @_;
-
-    DEBUG && WARN sprintf "Run [ %s ]", join ' ', @cmd;
-    my $is_success = run3 [ @cmd ], \my $in, \my $out, \my $err;
-    if ($is_success) {
-        chomp $out;
-        return $out;
-    } else {
-        die $err;
-    }
-}
-
 sub DESTROY {
     my $self = shift;
     for my $subcommand ( qw/kill rm/ ) {
-        _run('docker', $subcommand, $self->container_id);
+        docker($subcommand, $self->container_id);
     }
 }
 

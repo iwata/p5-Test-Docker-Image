@@ -14,13 +14,13 @@ my $container_id = '50e6798fa852e8568ca4e2be7890e40271b69bba000cd769c3d56e2a7e25
 
 subtest "new" => sub {
     my $guard = mock_guard('Test::Docker::Image' => +{
-        _run => sub {
+        docker => sub {
             my (@args) = @_;
-            if ( scalar(@args) == 3 ) {
-                my $exp = ['docker', re('^(:?kill|rm)$'), $container_id];
+            if ( scalar(@args) == 2 ) {
+                my $exp = [re('^(:?kill|rm)$'), $container_id];
                 cmp_deeply \@args => $exp, 'destroy';
             } else {
-                my $exp = [qw/docker run -d -t -p 3306 -p 80/, $tag];
+                my $exp = [qw/run -d -t -p 3306 -p 80/, $tag];
                 is_deeply \@args => $exp, 'docker run';
                 return $container_id;
             }
@@ -40,7 +40,7 @@ subtest "new" => sub {
         isa_ok $docker_image->{boot} => 'Test::Docker::Image::Boot';
 
     };
-    is $guard->call_count('Test::Docker::Image' => '_run') => 3;
+    is $guard->call_count('Test::Docker::Image' => 'docker') => 3;
 };
 
 subtest "port" => sub {
@@ -48,13 +48,13 @@ subtest "port" => sub {
     my $host_port      = 49172;
 
     my $guard = mock_guard('Test::Docker::Image' => +{
-        _run => sub {
+        docker => sub {
             my (@args) = @_;
-            unless ( scalar(@args) == 4 ) {
+            unless ( scalar(@args) == 3 ) {
                 return $container_id;
             }
 
-            my $exp = [qw/docker port/, $container_id, $container_port];
+            my $exp = ['port', $container_id, $container_port];
             is_deeply \@args => $exp, 'docker port';
             return "0.0.0.0:$host_port";
         },
@@ -68,19 +68,7 @@ subtest "port" => sub {
 
         is $docker_image->port( $container_port ) => $host_port;
     };
-    is $guard->call_count('Test::Docker::Image' => '_run') => 4;
-};
-
-subtest "_run" => sub {
-    local $ENV{DEBUG} = 1;
-
-    lives_ok {
-        Test::Docker::Image::_run('pwd');
-    } 'available command';
-
-    dies_ok {
-        Test::Docker::Image::_run('hoge');
-    } 'nonavailable command';
+    is $guard->call_count('Test::Docker::Image' => 'docker') => 4;
 };
 
 done_testing;
