@@ -4,6 +4,7 @@ requires 'Class::Load'           , '0.22';
 requires 'Class::Accessor::Lite' , '0.06';
 requires 'IPC::Run3'             , '0.048';
 requires 'Data::Util'            , '0.63';
+requires 'URI::Split';
 
 on 'test' => sub {
     requires 'Test::More'          , '0.98';

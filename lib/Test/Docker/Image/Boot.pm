@@ -4,6 +4,7 @@ use strict;
 use warnings;
 
 use Test::Docker::Image::Utility qw(docker);
+use URI::Split 'uri_split';
 
 sub new {
     my $class = shift;
@@ -11,7 +12,9 @@ sub new {
 }
 
 sub host {
-    return '127.0.0.1'; # localhost
+    my (undef, $auth) = uri_split $ENV{DOCKER_HOST};
+    my ($host, $port) = split ':', $auth;
+    return $host;
 }
 
 sub docker_run {
@@ -25,13 +28,6 @@ sub docker_port {
     my $port_info = docker('port', $container_id, $container_port);
     my (undef, $port) = split ':', $port_info;
     return $port;
-}
-
-sub on_destroy {
-    my ($self, $container_id) = @_;
-    for my $subcommand ( qw/kill rm/ ) {
-        docker($subcommand, $container_id);
-    }
 }
 
 1;

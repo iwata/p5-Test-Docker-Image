@@ -8,11 +8,11 @@ use Test::Mock::Guard;
 use Test::Docker::Image;
 
 my ($boot, $tag, $container_ports)
-    = ('Test::Docker::Image::Boot::Boot2docker', 'iwata/centos6-mysql51-q4m-hs', [3306, 80]);
+    = ('Test::Docker::Image::Boot', 'iwata/centos6-mysql51-q4m-hs', [3306, 80]);
 my $container_id = '50e6798fa852e8568ca4e2be7890e40271b69bba000cd769c3d56e2a7e254efaa';
 
 subtest "new" => sub {
-    my $guard = mock_guard('Test::Docker::Image::Boot' => +{
+    my $guard = mock_guard($boot => +{
         docker_run => sub {
             my (undef, $got_ports, $got_tag) = @_;
             my $exp_ports = [qw/-p 3306 -p 80/];
@@ -20,10 +20,8 @@ subtest "new" => sub {
             is $got_tag => $tag, 'second argument means image tag option';
             return $container_id;
         },
-        on_destroy => sub {
-            my (undef, $got_container_id) = @_;
-            is $got_container_id => $container_id, 'to remove';
-        }
+    }, 'Test::Docker::Image' => +{
+        DESTROY => 0,
     });
 
     lives_and {
@@ -40,9 +38,8 @@ subtest "new" => sub {
 
     };
 
-    for my $method ( qw(docker_run on_destroy) ) {
-        is $guard->call_count('Test::Docker::Image::Boot' => $method) => 1, "$method call once";
-    }
+    is $guard->call_count($boot => 'docker_run') => 1, "docker_run call once";
+    is $guard->call_count('Test::Docker::Image' => 'DESTROY') => 1, "DESTROY call once";
 };
 
 subtest "port" => sub {
@@ -63,10 +60,8 @@ subtest "port" => sub {
             is $got_container_port => $container_port, 'container_port';
             return $host_port;
         },
-        on_destroy => sub {
-            my (undef, $got_container_id) = @_;
-            is $got_container_id => $container_id, 'to remove';
-        },
+    }, 'Test::Docker::Image' => +{
+        DESTROY => 0,
     });
 
     lives_and {
@@ -79,9 +74,10 @@ subtest "port" => sub {
         is $docker_image->port( $container_port ) => $host_port;
     };
 
-    for my $method ( qw(docker_run docker_port on_destroy) ) {
+    for my $method ( qw(docker_run docker_port) ) {
         is $guard->call_count($boot => $method) => 1, "$method call once";
     }
+    is $guard->call_count('Test::Docker::Image' => 'DESTROY') => 1, "DESTROY call once";
 };
 
 done_testing;

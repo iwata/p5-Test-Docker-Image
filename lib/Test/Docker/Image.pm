@@ -7,6 +7,7 @@ use Time::HiRes 'sleep';
 use Data::Util ':check';
 use Class::Load qw/try_load_class/;
 
+use Test::Docker::Image::Utility qw(docker);
 use Class::Accessor::Lite (
     ro => [qw/tag container_ports container_id/],
 );
@@ -57,7 +58,9 @@ sub host {
 
 sub DESTROY {
     my $self = shift;
-    $self->{boot}->on_destroy( $self->container_id );
+    for my $subcommand ( qw/kill rm/ ) {
+        docker($subcommand, $self->container_id);
+    }
 }
 
 1;
