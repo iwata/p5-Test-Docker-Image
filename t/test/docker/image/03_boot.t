@@ -11,9 +11,10 @@ my $boot = Test::Docker::Image::Boot->new;
 my $container_id = '50e6798fa852e8568ca4e2be7890e40271b69bba000cd769c3d56e2a7e254efaa';
 
 subtest "host" => sub {
-    my $exp = '127.0.0.1';
+    local $ENV{DOCKER_HOST} = 'tcp://192.168.59.103:2375';
+    my $exp = '192.168.59.103';
     my $got = $boot->host;
-    is $got => $exp, "localhost";
+    is $got => $exp, 'see $DOCKER_HOST';
 };
 
 subtest "docker_run" => sub {
@@ -49,19 +50,6 @@ subtest "docker_port" => sub {
     my $got_port = $boot->docker_port($container_id, $container_port);
     is $got_port => $host_port;
     is $guard->call_count('Test::Docker::Image::Boot' => 'docker') => 1;
-};
-
-subtest "on_destroy" => sub {
-    my $guard = mock_guard('Test::Docker::Image::Boot' => +{
-        docker => sub {
-            my @cmds = @_;
-            my $exp = [re('^(:?kill|rm)$'), $container_id];
-            cmp_deeply \@cmds => $exp;
-        },
-    });
-
-    $boot->on_destroy( $container_id );
-    is $guard->call_count('Test::Docker::Image::Boot' => 'docker') => 2;
 };
 
 done_testing;

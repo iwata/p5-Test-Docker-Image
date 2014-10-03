@@ -7,6 +7,7 @@ use Time::HiRes 'sleep';
 use Data::Util ':check';
 use Class::Load qw/try_load_class/;
 
+use Test::Docker::Image::Utility qw(docker);
 use Class::Accessor::Lite (
     ro => [qw/tag container_ports container_id/],
 );
@@ -57,7 +58,9 @@ sub host {
 
 sub DESTROY {
     my $self = shift;
-    $self->{boot}->on_destroy( $self->container_id );
+    for my $subcommand ( qw/kill rm/ ) {
+        docker($subcommand, $self->container_id);
+    }
 }
 
 1;
@@ -84,17 +87,6 @@ Test::Docker::Image - It's new $module, this can handle a Docker image for tests
     `mysql -uroot -h$host -P$port -e 'show plugins'`;
     undef $mysql_image_guard; # destroy a guard object and execute docker kill and rm the container.
 
-    # for Mac OSX
-    `boot2docker up`;
-    my $mysql_image_guard = Test::Docker::Image->new(
-        container_ports => [3306],
-        tag             => 'iwata/centos6-mysql51-q4m-hs',
-        boot            => 'Test::Docker::Image::Boot::Boot2docker',
-    );
-
-    my $port = $mysql_image_guard->port(3306);
-    my $host = $mysql_image_guard->host;
-
 =head1 DESCRIPTION
 
 Test::Docker::Image is a module to handle a Docker image.
@@ -118,8 +110,6 @@ This is a required parameter. This specify some port numbers that publish a cont
 =item C<boot>
 
 This is an optional parameter. You set a boot module name.
-The boot looks like Boot2docker for Mac OSX that use docker via CoreOS on VirtualBox.
-It needs C<DOCKER_HOST> environment variable.
 C<Boot> module must extend Test::Docker::Image::Boot.
 
 =item C<sleep_sec>
@@ -134,7 +124,7 @@ Return a port number, this Docker image use number for port forwarding.
 
 =head2 C<host>
 
-Return a IP address, if you launch Docker service via boot2docker on OSX, this address means CoreOS's IP on VirtualBox.
+Return an IP address of Docker host.
 
 =head1 LICENSE
 

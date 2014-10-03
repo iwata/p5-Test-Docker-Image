@@ -15,7 +15,6 @@ use Test::Docker::Image::Utility 'docker';
 my $mysql51_image = Test::Docker::Image->new(
     tag             => 'iwata/centos6-mysql51-q4m-hs',
     container_ports => [3306],
-    boot            => 'Test::Docker::Image::Boot::Boot2docker',
 );
 
 my $container_id = $mysql51_image->container_id;

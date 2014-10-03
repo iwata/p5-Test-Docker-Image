@@ -7,7 +7,7 @@ use Test::Exception;
 use Test::Docker::Image;
 
 my ($boot, $tag, $container_ports)
-    = ('Test::Docker::Image::Boot::Boot2docker', 'iwata/centos6-mysql51-q4m-hs', [3306]);
+    = ('Test::Docker::Image::Boot', 'iwata/centos6-mysql51-q4m-hs', [3306]);
 
 subtest "construstor's options" => sub {
     subtest "unusual boot module" => sub {
