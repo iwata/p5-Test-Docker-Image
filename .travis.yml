@@ -9,7 +9,7 @@ env:
   - PERL_CPANM_OPT="--notest --force --skip-satisfied"
 
 before_install:
-  - cpanm Devel::Cover::Report::Coveralls
+  - cpanm Devel::Cover::Report::Coveralls HTTP::Tiny
 
 install:
   - cpanm --installdeps .
