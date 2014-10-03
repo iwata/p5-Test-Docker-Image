@@ -2,6 +2,10 @@ Revision history for Perl extension Test-Docker-Image
 
 {{$NEXT}}
 
+0.05 2014-10-03T07:00:39Z
+
+    - fix a bug on destroy
+
 0.04 2014-09-06T08:50:47Z
 
     - refactor Test::Docker::Image::Boot interface

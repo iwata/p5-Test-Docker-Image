@@ -18,17 +18,6 @@ Test::Docker::Image - It's new $module, this can handle a Docker image for tests
     `mysql -uroot -h$host -P$port -e 'show plugins'`;
     undef $mysql_image_guard; # destroy a guard object and execute docker kill and rm the container.
 
-    # for Mac OSX
-    `boot2docker up`;
-    my $mysql_image_guard = Test::Docker::Image->new(
-        container_ports => [3306],
-        tag             => 'iwata/centos6-mysql51-q4m-hs',
-        boot            => 'Test::Docker::Image::Boot::Boot2docker',
-    );
-
-    my $port = $mysql_image_guard->port(3306);
-    my $host = $mysql_image_guard->host;
-
 # DESCRIPTION
 
 Test::Docker::Image is a module to handle a Docker image.
@@ -50,8 +39,6 @@ return an instance of Test::Docker::Image, this instance is used as a guard obje
 - `boot`
 
     This is an optional parameter. You set a boot module name.
-    The boot looks like Boot2docker for Mac OSX that use docker via CoreOS on VirtualBox.
-    It needs `DOCKER_HOST` environment variable.
     `Boot` module must extend Test::Docker::Image::Boot.
 
 - `sleep_sec`
@@ -64,7 +51,7 @@ Return a port number, this Docker image use number for port forwarding.
 
 ## `host`
 
-Return a IP address, if you launch Docker service via boot2docker on OSX, this address means CoreOS's IP on VirtualBox.
+Return an IP address of Docker host.
 
 # LICENSE
 

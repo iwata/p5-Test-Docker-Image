@@ -12,7 +12,7 @@ use Class::Accessor::Lite (
     ro => [qw/tag container_ports container_id/],
 );
 
-our $VERSION = "0.04";
+our $VERSION = "0.05";
 
 sub new {
     my $class = shift;
